@@ -1,5 +1,3 @@
-# DAF
-
 # Disentangled Acoustic Fields For Multimodal Physical Scene Understanding (IROS2024)
 
 First Author: [**Jie Yin 殷杰**](https://github.com/sjtuyinjie?tab=repositories)
