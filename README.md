@@ -1,6 +1,7 @@
 # Disentangled Acoustic Fields For Multimodal Physical Scene Understanding (IROS2024)
 
 <div align="center">
+
 [Jie Yin](https://github.com/sjtuyinjie),
 [Andrew Luo](https://www.cs.cmu.edu/~afluo/),
 [Yilun Du](https://yilundu.github.io/),
