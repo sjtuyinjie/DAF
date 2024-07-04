@@ -1,7 +1,15 @@
 # Disentangled Acoustic Fields For Multimodal Physical Scene Understanding (IROS2024)
 
-First Author: [**Jie Yin 殷杰**](https://github.com/sjtuyinjie?tab=repositories)
-&emsp;
+
+[Jie Yin](https://github.com/sjtuyinjie),
+[Andrew Luo](https://www.cs.cmu.edu/~afluo/),
+[Yilun Du](https://yilundu.github.io/),
+[Anoop Cherian](http://users.cecs.anu.edu.au/~cherian/),
+[Tim K. Marks](https://www.merl.com/people/tmarks)
+[Jonathan Le Roux](https://www.jonathanleroux.org/)
+[Chuang Gan](https://people.csail.mit.edu/ganchuang/)
+
+
 📝 [[Paper]](https://openreview.net/pdf?id=R3CDj2DLln)
 &emsp;
 ➡️ [[Dataset]](https://github.com/chuangg/find_fallen_objects)
