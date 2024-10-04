@@ -57,4 +57,4 @@ If you use this work in an academic work, please cite:
 ~~~
 
 ## Acknowledgement
-Thanks funding support from MERL and computation resources from MIT-IBM AI Lab.
+Thanks funding support from [MERL](https://www.merl.com) and computation resources from [MIT-IBM AI Lab](https://mitibmwatsonailab.mit.edu/).
