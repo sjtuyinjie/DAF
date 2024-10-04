@@ -24,7 +24,7 @@
 [![IROS2024 Presentation](IROS24_0286.jpg)](https://www.youtube.com/watch?v=QUIvWGnYkgk)
 
 > [!NOTE]
-> This website is for an overview of our work titled "Disentangled Acoustic Fields For Multimodal Physical Scene Understanding" in IROS2024. Currently we don't have plans for further release codes.
+> This website is for an overview of our work titled "Disentangled Acoustic Fields For Multimodal Physical Scene Understanding"  accepted to IROS2024. Currently we don't have plans for release codes. For further details about this work, please go to [Preprint](https://github.com/sjtuyinjie/DAF/blob/main/daf_final.pdf).
 
 ## Introduction
 We study the problem of multimodal physical scene understanding, where an embodied agent needs to find fallen objects by inferring object properties, direction, and distance of an impact sound source. Previous works adopt feed-forward neural networks to directly regress the variables from sound, leading to poor generalization and domain adaptation issues. In this paper, we illustrate that learning a disentangled model of acoustic formation, referred to as disentangled acoustic field (DAF), to capture the sound generation and propagation process, enables the embodied agent to construct a spatial uncertainty map over where the objects may have fallen. We demonstrate that our analysis-by-synthesis framework can jointly infer sound properties by explicitly decomposing and factorizing the latent space of the disentangled model. We further show that the spatial uncertainty map can significantly improve the success rate for the localization of fallen objects by proposing multiple plausible exploration locations.
@@ -45,4 +45,16 @@ Next, we explored DAF’s potential in navigation and planning. Our ablation stu
 
 2. The method improves object localization success rates and generates multimodal uncertainty maps, demonstrating its potential for sound localization and understanding in complex environments.
 
+## Cite This Paper
+If you use this work in an academic work, please cite:
+~~~
+@article{yin2024disentangled,
+  title={Disentangled Acoustic Fields For Multimodal Physical Scene Understanding},
+  author={Yin, Jie and Luo, Andrew and Du, Yilun and Cherian, Anoop and Marks, Tim K and Roux, Jonathan Le and Gan, Chuang},
+  journal={arXiv preprint arXiv:2407.11333},
+  year={2024}
+}
+~~~
 
+## Acknowledgement
+Thanks funding support from MERL and computation resources from MIT-IBM AI Lab.
