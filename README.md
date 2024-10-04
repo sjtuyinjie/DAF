@@ -11,7 +11,7 @@
 [Chuang Gan](https://people.csail.mit.edu/ganchuang/)
 
 
-📝 [[Paper]](https://openreview.net/pdf?id=R3CDj2DLln)
+📝 [[Paper]](https://github.com/sjtuyinjie/DAF/blob/main/daf_final.pdf)
 &emsp;
 ➡️ [[Dataset]](https://github.com/chuangg/find_fallen_objects)
 &emsp;
