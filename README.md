@@ -15,7 +15,7 @@
 &emsp;
 ➡️ [[Dataset]](https://github.com/chuangg/find_fallen_objects)
 &emsp;
-⭐️ [[Presentation Video]](https://www.bilibili.com/video/BV1xx421m75k/?spm_id_from=333.337.search-card.all.click&vd_source=0804300aea4065df90adde5398ee74b7)
+⭐️ [[Presentation Video]](https://youtu.be/QUIvWGnYkgk)
 
 
 </div>
