@@ -6,8 +6,8 @@
 [Andrew Luo](https://www.cs.cmu.edu/~afluo/),
 [Yilun Du](https://yilundu.github.io/),
 [Anoop Cherian](http://users.cecs.anu.edu.au/~cherian/),
-[Tim K. Marks](https://www.merl.com/people/tmarks)
-[Jonathan Le Roux](https://www.jonathanleroux.org/)
+[Tim K. Marks](https://www.merl.com/people/tmarks),
+[Jonathan Le Roux](https://www.jonathanleroux.org/),
 [Chuang Gan](https://people.csail.mit.edu/ganchuang/)
 
 
