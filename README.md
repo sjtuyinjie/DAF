@@ -17,6 +17,13 @@
 &emsp;
 ⭐️ [[Presentation Video]](https://youtu.be/QUIvWGnYkgk)
 
+[![Author](https://img.shields.io/badge/Author-Jie%20Yin-blue)](https://sjtuyinjie.github.io/)
+[![Paper](https://img.shields.io/badge/Paper-DAF-yellow)](https://github.com/sjtuyinjie/DAF/blob/main/daf_final.pdf)
+[![Preprint](https://img.shields.io/badge/Ppreprint-Arxiv-purple)](https://arxiv.org/abs/2407.11333)
+[![Dataset](https://img.shields.io/badge/Dataset-FindFallen-green)](https://github.com/chuangg/find_fallen_objects)
+[![Video](https://img.shields.io/badge/Video-red)](https://www.youtube.com/watch?v=QUIvWGnYkgk)
+
+
 
 </div>
 
