@@ -1,0 +1,230 @@
+import torch
+
+torch.backends.cudnn.benchmark = True
+
+from data_loading.sound_loader_v4 import soundsamples
+import torch.multiprocessing as mp
+import os
+import socket
+from contextlib import closing
+import torch.distributed as dist
+from model.networks_fc import FC_layers_3, FC_layers_2,FC_layers_2_mod_16
+from model.modules import embedding_module_log
+from torch.nn.parallel import DistributedDataParallel as DDP
+import numpy as np
+import math
+from time import time
+from options import Options
+import functools
+import pickle
+from itertools import chain
+
+STRUCTURE_LOSS_LAMBDA = 5e-2 # should be small
+L2_LAMBDA = 5e-5 # must be small
+POS_LAMBDA = 10 # important
+KLD_LAMBDA = 1e-3
+basedir="vae_log.txt"
+f_log=open(basedir, 'w+')
+f_log.write("test\n")
+f_log.flush()
+
+def find_free_port():
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+        s.bind(('localhost', 0))
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        return s.getsockname()[1]
+
+
+def worker_init_fn(worker_id, myrank_info):
+    # print(worker_id + myrank_info*100, "SEED")
+    np.random.seed(worker_id + myrank_info * 100)
+
+
+def kld(mu_val, logvar_val):
+    return -0.5 * torch.sum(1 + logvar_val - mu_val.pow(2) - logvar_val.exp()) / mu_val.size(0)
+
+
+def reparameterize(mu, logvar):
+    std = torch.exp(0.5 * logvar)
+    eps = torch.randn_like(std)
+    return mu + eps * std
+
+def train_net(rank, world_size, freeport, other_args):
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = freeport
+    print(rank)
+    output_device = rank
+    # print(rank, world_size, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaa")
+    # exit()
+    dist.init_process_group("nccl", rank=rank, world_size=world_size)
+
+    pi = math.pi
+    dataset = soundsamples(other_args)
+    train_sampler = torch.utils.data.distributed.DistributedSampler(dataset, num_replicas=world_size, rank=rank)
+    ranked_worker_init = functools.partial(worker_init_fn, myrank_info=rank)
+    latent_dim = 8
+    sound_loader = torch.utils.data.DataLoader(dataset, batch_size=other_args.batch_size // world_size, shuffle=False,
+                                               num_workers=3, worker_init_fn=ranked_worker_init,
+                                               persistent_workers=True, sampler=train_sampler, drop_last=False)
+
+    #encoder = FC_layers_2_mod_16(input_ch=129+129, intermediate_ch=512, output_ch=40, num_blocks=4).to(output_device)
+    LATENT_CH = 8
+    encoder = FC_layers_3(input_ch=129 + 129, intermediate_ch=512, num_blocks=3, max_material_num=dataset.max_material,
+                           max_type_num=dataset.max_type, max_name_num=dataset.max_name, residual_latent_ch=LATENT_CH).to(output_device)
+    decoder = FC_layers_2(input_ch=dataset.max_material + LATENT_CH + 2, intermediate_ch=512,
+                          output_ch=129 + 129, num_blocks=3).to(output_device)
+
+    if rank == 0:
+        print("Dataloader requires {} batches".format(len(sound_loader)))#452
+    #     print(dataset.max_material + dataset.max_name + LATENT_CH + 2, "AAAAAAAAAAAAAAAAAAAAAAAAAA")
+    # exit()
+
+    start_epoch = 1
+    #load_opt = 0
+    #loaded_weights = False
+
+
+
+    # We have conditional forward, must set find_unused_parameters to true
+    encoder_DDP = DDP(encoder, find_unused_parameters=True, device_ids=[rank])
+    decoder_DDP = DDP(decoder, find_unused_parameters=False, device_ids=[rank])
+    reconstruction_criterion = torch.nn.MSELoss()
+    position_criterion = torch.nn.MSELoss()
+    structured_criterion = torch.nn.CrossEntropyLoss()
+
+    optimizer_1 = torch.optim.Adam(chain(encoder_DDP.parameters(), decoder_DDP.parameters()), lr=2e-4)
+    # optimizer_2 = torch.optim.Adam(chain(decoder_DDP.parameters()), lr=2e-4)
+
+    if rank == 0:
+        old_time = time()
+
+    positional_embed_module = embedding_module_log(num_freqs=10, ch_dim=1, max_freq=5)
+
+    for epoch in range(start_epoch, other_args.epochs):
+        total_losses = 0
+
+        material_loss_buffer = 0.0
+        type_loss_buffer = 0.0
+        regularization_buffer = 0.0
+        reconstruction_buffer = 0.0
+        position_buffer = 0.0
+        total_loss_buffer = 0.0
+        kld_loss_buffer = 0.0
+
+        cur_iter = 0
+        # if epoch <= 50:
+        for data_stuff in sound_loader:
+            gt = data_stuff["training_data"].to(output_device, non_blocking=True)
+            material_num_gt = data_stuff["material_num"].to(output_device, non_blocking=True)[:, 0]
+            type_num_gt = data_stuff["type_num"].to(output_device, non_blocking=True)[:, 0]
+            name_num_gt = data_stuff["name_num"].to(output_device, non_blocking=True)[:, 0]
+            position_gt = data_stuff["position"].to(output_device, non_blocking=True)
+            #print(position_gt)
+
+
+            optimizer_1.zero_grad(set_to_none=True)
+            material_pred, type_pred, residual_pred_mu, residual_pred_logvar, position_pred = encoder_DDP(gt)
+            residual_pred = reparameterize(residual_pred_mu, residual_pred_logvar)
+            # position_embedded = positional_embed_module(position_pred)
+            position_embedded = position_pred + 0.0
+            # print(position_pred.shape, position_embedded.shape,"POS  SHAPE")
+            # dist.barrier()
+            # dist.destroy_process_group()
+
+     
+
+
+            # print('mat:')
+            # print(material_pred.shape)
+            # print('type:')
+            # print(type_pred.shape)
+            # print('resi:')
+            # print(residual_pred.shape)
+            # print('posi:')
+            # print(position_embedded.shape)
+# mat:
+# torch.Size([20, 10])
+# type:
+# torch.Size([20, 30])
+# resi:
+# torch.Size([20, 8])
+# posi:
+# torch.Size([20, 2])  posi pred
+# posi embdded 42
+
+            # total_latent = torch.cat((material_pred, type_pred, residual_pred, position_embedded), axis=1)
+            total_latent = torch.cat((material_pred, residual_pred, position_embedded), axis=1)
+            recovered_output = decoder_DDP(total_latent)
+
+
+            loss_material = structured_criterion(material_pred, material_num_gt) * STRUCTURE_LOSS_LAMBDA
+            # loss_type = structured_criterion(type_pred, type_num_gt) * STRUCTURE_LOSS_LAMBDA
+            loss_type = 0.0
+            # print(position_gt[:,0])
+            # print(position_embedded)
+            loss_position = position_criterion(position_embedded, position_gt[:,0]) * POS_LAMBDA
+            loss_kld = kld(residual_pred_mu, residual_pred_logvar) * KLD_LAMBDA
+
+            loss_regularization = torch.mean(torch.norm(residual_pred, dim=1)) * L2_LAMBDA
+            loss_reconstruction = reconstruction_criterion(recovered_output, gt)
+
+            total_loss = loss_material + loss_kld + loss_regularization + loss_reconstruction + loss_position
+
+            if rank == 0:
+                material_loss_buffer += loss_material.item()
+                # type_loss_buffer += loss_type.item()
+                type_loss_buffer += 0.0
+                regularization_buffer += loss_regularization.item()
+                reconstruction_buffer += loss_reconstruction.item()
+                total_loss_buffer += total_loss.item()
+                position_buffer += loss_position.item()
+                kld_loss_buffer += loss_kld.item()
+                cur_iter += 1
+
+            total_loss.backward()
+            optimizer_1.step()
+        if rank == 0:
+            avg_material = material_loss_buffer / cur_iter
+            avg_type = type_loss_buffer / cur_iter
+            avg_regularization = regularization_buffer / cur_iter
+            avg_reconstruction = reconstruction_buffer / cur_iter
+            avg_position = position_buffer / cur_iter
+            avg_loss = total_loss_buffer / cur_iter
+            avg_kld = kld_loss_buffer/cur_iter
+
+            print(
+                "{}: Ending epoch {}, time {},  Total loss: {:.6}, position loss: {:.6}, reconstruction loss: {:.6}, kld loss: {:.6}, material loss: {:.6}, reg loss: {:.6}".format(
+                    other_args.exp_name, epoch, time() - old_time, avg_loss, avg_position, avg_reconstruction, avg_kld, avg_material, avg_regularization))
+            old_time = time()
+            f_log = open(basedir, 'a')
+            f_log.write("{}: Ending epoch {}, time {},  Total loss: {:.6}, position loss: {:.6}, reconstruction loss: {:.6}, kld loss: {:.6}, material loss: {:.6}, reg loss: {:.6}\n".format(
+                    other_args.exp_name, epoch, time() - old_time, avg_loss, avg_position, avg_reconstruction, avg_kld, avg_material, avg_regularization))
+            f_log.flush()
+        if rank == 0 and (epoch % 10 == 0 or epoch == 1 or epoch > (other_args.epochs - 3)):
+            save_name = str(epoch).zfill(5) + ".chkpt"
+            save_dict = {}
+            print("saved")
+            save_dict["network"] = [encoder_DDP.module.state_dict(), decoder_DDP.module.state_dict()]
+            torch.save(save_dict, os.path.join(other_args.exp_dir, save_name))
+    print("Wrapping up training {}".format(other_args.exp_name))
+    dist.barrier()
+    dist.destroy_process_group()
+    return 1
+
+
+if __name__ == '__main__':
+    cur_args = Options().parse()
+    exp_name = cur_args.exp_name
+    exp_name_filled = exp_name.format(cur_args.apt)
+    cur_args.exp_name = exp_name_filled
+    if not os.path.isdir(cur_args.save_loc):
+        print("Save directory {} does not exist, creating...".format(cur_args.save_loc))
+        os.mkdir(cur_args.save_loc)
+    exp_dir = os.path.join(cur_args.save_loc, exp_name_filled)
+    cur_args.exp_dir = exp_dir
+    print("Experiment directory is {}".format(exp_dir))
+    if not os.path.isdir(exp_dir):
+        os.mkdir(exp_dir)
+    world_size = cur_args.gpus
+    myport = str(find_free_port())
+    mp.spawn(train_net, args=(world_size, myport, cur_args), nprocs=world_size, join=True)
