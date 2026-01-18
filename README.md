@@ -31,7 +31,7 @@
 [![IROS2024 Presentation](IROS24_0286.jpg)](https://www.youtube.com/watch?v=QUIvWGnYkgk)
 
 > [!NOTE]
-> This repo inculdes **the core implementation of DAF algorithm** in our work titled "Disentangled Acoustic Fields For Multimodal Physical Scene Understanding"  accepted to IROS2024. For further details about this work, please go to [Preprint](https://github.com/sjtuyinjie/DAF/blob/main/daf_final.pdf).
+> This repo inculdes **the core implementation of DAF algorithm** in our work titled "Disentangled Acoustic Fields For Multimodal Physical Scene Understanding"  accepted to IROS2024. For the navigation module of this work, please refer to [Modular Planning](https://github.com/chuangg/find_fallen_objects).
 
 ## Introduction
 We study the problem of multimodal physical scene understanding, where an embodied agent needs to find fallen objects by inferring object properties, direction, and distance of an impact sound source. Previous works adopt feed-forward neural networks to directly regress the variables from sound, leading to poor generalization and domain adaptation issues. In this paper, we illustrate that learning a disentangled model of acoustic formation, referred to as disentangled acoustic field (DAF), to capture the sound generation and propagation process, enables the embodied agent to construct a spatial uncertainty map over where the objects may have fallen. We demonstrate that our analysis-by-synthesis framework can jointly infer sound properties by explicitly decomposing and factorizing the latent space of the disentangled model. We further show that the spatial uncertainty map can significantly improve the success rate for the localization of fallen objects by proposing multiple plausible exploration locations.
